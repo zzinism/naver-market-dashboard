@@ -11,6 +11,8 @@ import {
   ResponsiveContainer,
   Cell,
   LabelList,
+  PieChart,
+  Pie,
 } from "recharts";
 import type { Product } from "@/types";
 
@@ -30,11 +32,24 @@ interface BarDataPoint {
   image: string;
 }
 
+interface BrandCount {
+  brand: string;
+  count: number;
+  color: string;
+}
+
+interface PieDataPoint {
+  brand: string;
+  count: number;
+  color: string;
+  percent: number;
+}
+
 interface PriceDistributionProps {
   products: Product[];
 }
 
-function CustomTooltip({
+function PriceTooltip({
   active,
   payload,
 }: {
@@ -42,7 +57,6 @@ function CustomTooltip({
   payload?: Array<{ payload: BarDataPoint }>;
 }) {
   if (!active || !payload?.length) return null;
-
   const d = payload[0].payload;
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-lg text-sm max-w-xs">
@@ -51,6 +65,39 @@ function CustomTooltip({
       {d.brand && <p className="text-gray-600">브랜드: {d.brand}</p>}
       <p className="text-xs text-gray-400 mt-1">더블클릭하면 상품 페이지로 이동합니다.</p>
     </div>
+  );
+}
+
+function BrandTooltip({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload: BrandCount; value: number }>;
+}) {
+  if (!active || !payload?.length) return null;
+  const d = payload[0].payload;
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg p-2 shadow-lg text-sm">
+      <p className="font-semibold">{d.brand}</p>
+      <p className="text-gray-600">{d.count}개 상품</p>
+    </div>
+  );
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function renderPieLabel(props: any) {
+  const { cx, cy, midAngle, innerRadius, outerRadius, percent } = props;
+  const RADIAN = Math.PI / 180;
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5 + 20;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  if (percent < 0.04) return null;
+  return (
+    <text x={x} y={y} fill="#374151" textAnchor="middle" dominantBaseline="central" fontSize={11}>
+      {`${(percent * 100).toFixed(1)}%`}
+    </text>
   );
 }
 
@@ -103,6 +150,41 @@ export default function PriceDistribution({ products }: PriceDistributionProps) 
       .sort((a, b) => b[1] - a[1])
       .map(([brand]) => brand);
   }, [products]);
+
+  // 브랜드 분포 데이터 (상위 10개)
+  const brandDistData = useMemo((): BrandCount[] => {
+    const counts: Record<string, number> = {};
+    products.forEach((p) => {
+      const b = p.brand || "(브랜드 없음)";
+      counts[b] = (counts[b] || 0) + 1;
+    });
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([brand, count]) => ({
+        brand,
+        count,
+        color: brandColorMap[brand] || "#64748b",
+      }));
+  }, [products, brandColorMap]);
+
+  // 파이 차트 데이터
+  const pieData = useMemo((): PieDataPoint[] => {
+    const counts: Record<string, number> = {};
+    products.forEach((p) => {
+      const b = p.brand || "(브랜드 없음)";
+      counts[b] = (counts[b] || 0) + 1;
+    });
+    const total = products.length;
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([brand, count]) => ({
+        brand,
+        count,
+        color: brandColorMap[brand] || "#64748b",
+        percent: count / total,
+      }));
+  }, [products, brandColorMap]);
 
   // 더블클릭 감지
   const handleBarClick = useCallback((data: BarDataPoint) => {
@@ -160,7 +242,7 @@ export default function PriceDistribution({ products }: PriceDistributionProps) 
       </div>
 
       <ResponsiveContainer width="100%" height={350}>
-        <BarChart data={barData} margin={{ top: 25, right: 20, bottom: 5, left: 20 }}>
+        <BarChart data={barData} margin={{ top: 20, right: 20, bottom: 5, left: 20 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} />
           <XAxis dataKey="index" tick={false} axisLine={false} />
           <YAxis
@@ -172,7 +254,7 @@ export default function PriceDistribution({ products }: PriceDistributionProps) 
             label={{ value: "가격 (원)", angle: -90, position: "insideLeft", offset: -5, style: { fontSize: 11 } }}
             width={60}
           />
-          <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(0,0,0,0.05)" }} />
+          <Tooltip content={<PriceTooltip />} cursor={{ fill: "rgba(0,0,0,0.05)" }} />
           <Bar
             dataKey="price"
             radius={[2, 2, 0, 0]}
@@ -186,11 +268,89 @@ export default function PriceDistribution({ products }: PriceDistributionProps) 
               dataKey="brand"
               position="top"
               style={{ fontSize: 10, fill: "#6b7280" }}
-              angle={-35}
+              angle={0}
             />
           </Bar>
         </BarChart>
       </ResponsiveContainer>
+
+      {/* 브랜드 분포 + 점유율 */}
+      <div className="grid grid-cols-2 gap-6 mt-8">
+        {/* 브랜드 분포 (상위 10) */}
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">
+            브랜드 분포 (상위 {brandDistData.length})
+          </h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={brandDistData} margin={{ top: 5, right: 20, bottom: 40, left: 10 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis
+                dataKey="brand"
+                tick={{ fontSize: 11 }}
+                angle={-25}
+                textAnchor="end"
+                interval={0}
+                height={50}
+              />
+              <YAxis
+                allowDecimals={false}
+                label={{ value: "상품 수", angle: -90, position: "insideLeft", offset: -5, style: { fontSize: 11 } }}
+                width={40}
+              />
+              <Tooltip content={<BrandTooltip />} />
+              <Bar dataKey="count" radius={[3, 3, 0, 0]}>
+                {brandDistData.map((entry) => (
+                  <Cell key={entry.brand} fill={entry.color} fillOpacity={0.85} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* 브랜드 점유율 파이 차트 */}
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">브랜드 점유율</h3>
+          <div className="flex items-start">
+            <ResponsiveContainer width="65%" height={300}>
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  dataKey="count"
+                  nameKey="brand"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={110}
+                  label={renderPieLabel}
+                  labelLine={false}
+                >
+                  {pieData.map((entry) => (
+                    <Cell key={entry.brand} fill={entry.color} fillOpacity={0.85} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  formatter={(value: any, _name: any, props: any) => [
+                    `${value}개 (${(props.payload.percent * 100).toFixed(1)}%)`,
+                    props.payload.brand,
+                  ]}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            {/* 파이 범례 */}
+            <div className="flex flex-col gap-1.5 text-xs pt-4 flex-shrink-0">
+              {pieData.map((entry) => (
+                <span key={entry.brand} className="inline-flex items-center gap-1.5">
+                  <span
+                    className="inline-block w-3 h-3 rounded-sm flex-shrink-0"
+                    style={{ backgroundColor: entry.color }}
+                  />
+                  <span className="text-gray-700">{entry.brand}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
