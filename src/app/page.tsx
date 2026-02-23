@@ -4,6 +4,7 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import SearchForm from "@/components/search/SearchForm";
 import FeatureTags from "@/components/search/FeatureTags";
 import ScatterChart from "@/components/chart/ScatterChart";
+import PriceDistribution from "@/components/chart/PriceDistribution";
 import type { ChartDataPoint } from "@/components/chart/ScatterChart";
 import type { Product, SearchParams } from "@/types";
 import * as XLSX from "xlsx";
@@ -363,6 +364,10 @@ export default function DashboardPage() {
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700">
           {error}
         </div>
+      )}
+
+      {products.length > 0 && (
+        <PriceDistribution products={products} />
       )}
 
       {products.length > 0 && (
