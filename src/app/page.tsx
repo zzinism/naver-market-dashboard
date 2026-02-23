@@ -333,6 +333,7 @@ export default function DashboardPage() {
   const exportToExcel = useCallback(() => {
     const rows = filteredAndSorted.map((product) => {
       const row: Record<string, string | number> = {
+        순번: product.rank,
         상품명: product.name,
         가격: product.price,
         브랜드: product.brand || "",
@@ -417,6 +418,7 @@ export default function DashboardPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 text-gray-600">
                 <tr>
+                  <th className="text-center px-3 py-3 font-medium w-12">순번</th>
                   <th className="text-left px-4 py-3 font-medium w-16">이미지</th>
                   <th
                     className="text-left px-4 py-3 font-medium cursor-pointer hover:text-blue-600 select-none"
@@ -448,6 +450,7 @@ export default function DashboardPage() {
                 </tr>
                 {showFilters && (
                   <tr className="bg-gray-100">
+                    <td className="px-3 py-2"></td>
                     <td className="px-4 py-2"></td>
                     <td className="px-4 py-2">
                       <input
@@ -504,6 +507,9 @@ export default function DashboardPage() {
               <tbody className="divide-y divide-gray-100">
                 {filteredAndSorted.map((product) => (
                   <tr key={product.id} className="hover:bg-gray-50">
+                    <td className="px-3 py-3 text-center text-gray-500 text-xs font-medium">
+                      {product.rank}
+                    </td>
                     <td className="px-4 py-3">
                       {product.image && (
                         <img
@@ -562,7 +568,7 @@ export default function DashboardPage() {
                 ))}
                 {filteredAndSorted.length === 0 && (
                   <tr>
-                    <td colSpan={4 + featureTags.length} className="px-4 py-8 text-center text-gray-400">
+                    <td colSpan={5 + featureTags.length} className="px-4 py-8 text-center text-gray-400">
                       필터 조건에 맞는 결과가 없습니다.
                     </td>
                   </tr>

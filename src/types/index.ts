@@ -52,6 +52,7 @@ export interface ProductSpec {
 // 대시보드에서 사용하는 정제된 상품 데이터
 export interface Product {
   id: string;
+  rank: number; // 검색 결과 순번 (1부터)
   name: string;
   image: string;
   url: string;

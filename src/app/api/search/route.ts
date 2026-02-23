@@ -27,8 +27,9 @@ export async function POST(request: NextRequest) {
     });
 
     // 네이버 API 응답을 Product 타입으로 변환
-    const products: Product[] = items.map((item) => ({
+    const products: Product[] = items.map((item, index) => ({
       id: item.productId,
+      rank: index + 1,
       name: item.title.replace(/<[^>]*>/g, ""), // HTML 태그 제거
       image: item.image,
       url: item.link,
