@@ -296,7 +296,9 @@ export default function DashboardPage() {
     if (sort) {
       result.sort((a, b) => {
         let cmp = 0;
-        if (sort.key === "name") {
+        if (sort.key === "rank") {
+          cmp = a.rank - b.rank;
+        } else if (sort.key === "name") {
           cmp = a.name.localeCompare(b.name, "ko");
         } else if (sort.key === "price") {
           cmp = a.price - b.price;
@@ -418,7 +420,12 @@ export default function DashboardPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 text-gray-600">
                 <tr>
-                  <th className="text-center px-3 py-3 font-medium w-12">순번</th>
+                  <th
+                    className="text-center px-3 py-3 font-medium w-12 cursor-pointer hover:text-blue-600 select-none"
+                    onClick={() => toggleSort("rank")}
+                  >
+                    순번{sortIcon("rank")}
+                  </th>
                   <th className="text-left px-4 py-3 font-medium w-16">이미지</th>
                   <th
                     className="text-left px-4 py-3 font-medium cursor-pointer hover:text-blue-600 select-none"
