@@ -49,7 +49,7 @@ export default function SearchForm({ onSearch, isLoading }: SearchFormProps) {
             id="count"
             type="number"
             min={1}
-            max={50}
+            max={100}
             value={count}
             onChange={(e) => setCount(Number(e.target.value))}
             className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"

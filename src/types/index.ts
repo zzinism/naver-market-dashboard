@@ -11,7 +11,7 @@ export const SORT_OPTIONS: { value: SortType; label: string }[] = [
 // 검색 파라미터
 export interface SearchParams {
   keyword: string;
-  count: number; // 1~50
+  count: number; // 1~100
   sort: SortType;
 }
 

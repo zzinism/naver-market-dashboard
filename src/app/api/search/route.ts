@@ -13,9 +13,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (body.count < 1 || body.count > 50) {
+    if (body.count < 1 || body.count > 100) {
       return NextResponse.json(
-        { error: "조회 수는 1~50 사이여야 합니다." },
+        { error: "조회 수는 1~100 사이여야 합니다." },
         { status: 400 }
       );
     }
