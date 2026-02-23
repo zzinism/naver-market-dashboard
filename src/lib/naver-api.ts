@@ -17,8 +17,8 @@ interface SearchOptions {
 export async function searchNaverShopping(
   options: SearchOptions
 ): Promise<NaverShoppingItem[]> {
-  const clientId = process.env.NAVER_CLIENT_ID;
-  const clientSecret = process.env.NAVER_CLIENT_SECRET;
+  const clientId = process.env.NAVER_CLIENT_ID?.trim();
+  const clientSecret = process.env.NAVER_CLIENT_SECRET?.trim();
 
   if (!clientId || !clientSecret) {
     throw new Error(
