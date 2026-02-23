@@ -1,11 +1,11 @@
 // 정렬 기준 옵션
-export type SortType = "sim" | "review" | "asc" | "date";
+export type SortType = "sim" | "date" | "asc" | "dsc";
 
 export const SORT_OPTIONS: { value: SortType; label: string }[] = [
-  { value: "sim", label: "네이버 랭킹순" },
-  { value: "review", label: "리뷰 많은 순" },
-  { value: "asc", label: "리뷰 좋은 순" },
+  { value: "sim", label: "정확도순" },
   { value: "date", label: "등록일순" },
+  { value: "asc", label: "가격 낮은순" },
+  { value: "dsc", label: "가격 높은순" },
 ];
 
 // 검색 파라미터

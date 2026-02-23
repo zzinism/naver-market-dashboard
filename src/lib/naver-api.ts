@@ -44,14 +44,14 @@ export async function searchNaverShopping(
 
 /**
  * 네이버 API 정렬 옵션 설명
- * - sim: 정확도순 (네이버 랭킹순)
+ * - sim: 정확도순
  * - date: 등록일순
- * - asc: 가격 낮은순 (리뷰 좋은 순 대체)
- * - review: 리뷰 많은 순 (비공식, 실제 API 지원 여부 확인 필요)
+ * - asc: 가격 낮은순
+ * - dsc: 가격 높은순
  */
 export const SORT_MAP: Record<SortType, string> = {
   sim: "정확도순",
-  review: "리뷰 많은 순",
-  asc: "리뷰 좋은 순",
   date: "등록일순",
+  asc: "가격 낮은순",
+  dsc: "가격 높은순",
 };
