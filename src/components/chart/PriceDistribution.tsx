@@ -10,6 +10,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   Cell,
+  LabelList,
 } from "recharts";
 import type { Product } from "@/types";
 
@@ -158,8 +159,8 @@ export default function PriceDistribution({ products }: PriceDistributionProps) 
         ))}
       </div>
 
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={barData} margin={{ top: 5, right: 20, bottom: 5, left: 20 }}>
+      <ResponsiveContainer width="100%" height={350}>
+        <BarChart data={barData} margin={{ top: 25, right: 20, bottom: 5, left: 20 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} />
           <XAxis dataKey="index" tick={false} axisLine={false} />
           <YAxis
@@ -181,6 +182,12 @@ export default function PriceDistribution({ products }: PriceDistributionProps) 
             {barData.map((entry) => (
               <Cell key={entry.index} fill={brandColorMap[entry.brand]} fillOpacity={0.85} />
             ))}
+            <LabelList
+              dataKey="brand"
+              position="top"
+              style={{ fontSize: 10, fill: "#6b7280" }}
+              angle={-35}
+            />
           </Bar>
         </BarChart>
       </ResponsiveContainer>
