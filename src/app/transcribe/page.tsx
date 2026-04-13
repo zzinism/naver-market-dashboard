@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef } from "react";
 import type {
+  ClovaSpeechResponse,
   TranscribeResponse,
   SummarizeResponse,
   Utterance,
@@ -96,16 +97,103 @@ export default function TranscribePage() {
     setSummary(null);
 
     try {
-      const formData = new FormData();
-      formData.append("audio", file);
+      // 1. 서버에서 CLOVA Speech 설정 가져오기
+      const configRes = await fetch("/api/transcribe/config");
+      const config = await configRes.json();
+      if (!configRes.ok)
+        throw new Error(config.error || "설정을 불러올 수 없습니다.");
 
-      const res = await fetch("/api/transcribe", {
-        method: "POST",
-        body: formData,
+      // 2. 브라우저에서 CLOVA Speech로 직접 업로드 (Vercel 4.5MB 제한 우회)
+      const params = {
+        language: "ko-KR",
+        completion: "sync",
+        wordAlignment: true,
+        fullText: true,
+        diarization: {
+          enable: true,
+          speakerCountMin: -1,
+          speakerCountMax: -1,
+        },
+      };
+
+      const clovaForm = new FormData();
+      clovaForm.append("media", file);
+      clovaForm.append("params", JSON.stringify(params));
+
+      const clovaRes = await fetch(
+        `${config.invokeUrl}/recognizer/upload`,
+        {
+          method: "POST",
+          headers: {
+            "X-CLOVASPEECH-API-KEY": config.apiKey,
+            Accept: "application/json;UTF-8",
+          },
+          body: clovaForm,
+        }
+      );
+
+      if (!clovaRes.ok) {
+        const errText = await clovaRes.text();
+        throw new Error(
+          `CLOVA Speech API 오류 (${clovaRes.status}): ${errText}`
+        );
+      }
+
+      const clovaData: ClovaSpeechResponse = await clovaRes.json();
+
+      if (clovaData.result !== "COMPLETED") {
+        throw new Error(`음성 인식 실패: ${clovaData.message}`);
+      }
+
+      // 3. 같은 발화자의 연속 발화를 병합
+      const speakerNameMap = new Map<string, string>();
+      let speakerCounter = 0;
+
+      function getSpeakerName(label: string): string {
+        if (!speakerNameMap.has(label)) {
+          speakerCounter++;
+          speakerNameMap.set(label, `발화자 ${speakerCounter}`);
+        }
+        return speakerNameMap.get(label)!;
+      }
+
+      const utterances: Utterance[] = [];
+      let currentGroup: Utterance | null = null;
+
+      for (const seg of clovaData.segments) {
+        const label = seg.speaker?.label ?? seg.diarization?.label ?? "0";
+        const speakerName = getSpeakerName(label);
+
+        if (currentGroup && currentGroup.speakerLabel === label) {
+          currentGroup.text += " " + seg.text;
+          currentGroup.endMs = seg.end;
+          currentGroup.confidence = Math.min(
+            currentGroup.confidence,
+            seg.confidence
+          );
+        } else {
+          if (currentGroup) utterances.push(currentGroup);
+          currentGroup = {
+            speaker: speakerName,
+            speakerLabel: label,
+            text: seg.text,
+            startMs: seg.start,
+            endMs: seg.end,
+            confidence: seg.confidence,
+          };
+        }
+      }
+      if (currentGroup) utterances.push(currentGroup);
+
+      const fullText = utterances
+        .map((u) => `${u.speaker}: ${u.text}`)
+        .join("\n");
+
+      setTranscription({
+        utterances,
+        fullText,
+        speakerCount: speakerNameMap.size,
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "음성 인식에 실패했습니다.");
-      setTranscription(data as TranscribeResponse);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "음성 인식 중 오류가 발생했습니다."
