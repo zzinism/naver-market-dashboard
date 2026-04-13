@@ -8,8 +8,8 @@ import type {
 } from "@/types/transcribe";
 
 const ACCEPTED_EXTENSIONS = ".mp3,.wav,.m4a,.aac,.ogg,.flac,.webm,.mp4";
-const MAX_FILE_SIZE_MB = 100;
-const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
+const MAX_FILE_SIZE_GB = 2;
+const MAX_FILE_SIZE = MAX_FILE_SIZE_GB * 1024 * 1024 * 1024;
 
 // 발화자별 색상
 const SPEAKER_COLORS = [
@@ -64,7 +64,7 @@ export default function TranscribePage() {
     setTranscription(null);
 
     if (f.size > MAX_FILE_SIZE) {
-      setError(`파일 크기가 ${MAX_FILE_SIZE_MB}MB를 초과합니다.`);
+      setError(`파일 크기가 ${MAX_FILE_SIZE_GB}GB를 초과합니다.`);
       return;
     }
     setFile(f);
@@ -198,7 +198,7 @@ export default function TranscribePage() {
                 파일을 드래그하거나 클릭하여 선택하세요
               </p>
               <p className="text-xs text-gray-400 mt-1">
-                MP3, WAV, M4A, AAC, OGG, FLAC (최대 {MAX_FILE_SIZE_MB}MB)
+                MP3, WAV, M4A, AAC, OGG, FLAC (최대 {MAX_FILE_SIZE_GB}GB)
               </p>
             </div>
           )}

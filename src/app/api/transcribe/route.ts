@@ -6,7 +6,7 @@ import type {
   TranscribeResponse,
 } from "@/types/transcribe";
 
-const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+const MAX_FILE_SIZE = 2 * 1024 * 1024 * 1024; // 2GB
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
 
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
-        { error: "파일 크기는 100MB 이하여야 합니다." },
+        { error: "파일 크기는 2GB 이하여야 합니다." },
         { status: 400 }
       );
     }
