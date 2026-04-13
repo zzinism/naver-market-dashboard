@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const NAV_ITEMS = [
   { href: "/", label: "대시보드", icon: "📊" },
   { href: "/saved", label: "저장된 분석", icon: "💾" },
+  { href: "/transcribe", label: "음성 전사", icon: "🎙️" },
 ];
 
 export default function Sidebar() {
